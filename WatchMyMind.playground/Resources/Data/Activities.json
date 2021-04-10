@@ -1,0 +1,17 @@
+[{
+    "id" : "1",
+    "title" : "Mindfulness",
+    "description" : "Mindfulness is the basic human ability to be fully present, aware of where we are and what we’re doing, and not overly reactive or overwhelmed by what’s going on around us. Mindfulness is a quality that every human being already possesses, it’s not something you have to conjure up, you just have to learn how to access it.",
+    "type": "AUTO",
+    "imageIcon" : "mindfulness",
+    "progrss": "43"
+},
+{
+    "id" : "2",
+    "title" : "Exercise",
+    "description" : "Exercises, including jogging, swimming, cycling, walking, gardening, and dancing, have been proved to reduce anxiety and depression. These improvements in mood are proposed to be caused by exercise-induced increase in blood circulation to the brain and by an influence on the hypothalamic-pituitary-adrenal(HPA) axis and, thus, on the physiologic reactivity to stress",
+    "type": "AUTO",
+    "imageIcon" : "other",
+    "progrss": "85"
+}
+]
