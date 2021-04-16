@@ -1,5 +1,4 @@
 import SwiftUI
-
 import HealthKit
 
 let dateFormatter: DateFormatter = {
@@ -8,6 +7,7 @@ let dateFormatter: DateFormatter = {
     formatter.dateFormat = "HH:mm"
     return formatter
 }()
+
 let taskDateFormat: DateFormatter = {
        let formatter = DateFormatter()
        formatter.dateStyle = .long
@@ -16,9 +16,11 @@ let taskDateFormat: DateFormatter = {
 
 public struct ActivityView: View {
     // MARK: - PROPERTIES
+    
     let wmm : Color = Color(red: 117 / 255, green: 31 / 255, blue: 252 / 255)
     let standingColor : Color = Color(red: 253 / 255, green: 113 / 255, blue: 60 / 255)
     @State private var isAnnimatingImage : Bool = false
+    
     //let activity : Activity
     let titie : String
     let description : String
@@ -31,6 +33,8 @@ public struct ActivityView: View {
 
     @State  var action: Int? = 0
     @State var isDate : Bool = false
+    @State var goal : Int = 0
+    @State var settingGoal : Bool = false
     
     
     public init(title: String ,description : String , type : String , imageIcon : String , navigationTag : Int , ui : UIImage){
@@ -45,7 +49,22 @@ public struct ActivityView: View {
     // MARK: - FUNCTION
     
     
-    
+    func loadData(){
+        let defaults = UserDefaults.standard
+        var value = 0
+        if titie == "Mindfulness" {
+            if defaults.integer(forKey: "MF")  != nil{
+                value = defaults.integer(forKey: "MF")
+            }
+        } else {
+            if defaults.integer(forKey: "EX")  != nil{
+                
+                value = defaults.integer(forKey: "EX")
+            }
+        }
+        self.goal = value
+        
+    }
     // MARK: - BODY
    public var body: some View {
             ZStack{
@@ -80,20 +99,34 @@ public struct ActivityView: View {
                         
                     })
                     
-                    Text("30 Min/Day")
-                     .font(.system(size: 16))
-                     .fontWeight(.bold)
-                     .foregroundColor(standingColor)
-                     .padding(.top,5)
-                     .padding(.bottom)
-    
-                   
+                    
+                    ZStack {
+                        
+                        Button(action: {
+                            settingGoal.toggle()
+                        }, label: {
+                            HStack{
+                                Text("\(goal) Min/Day")
+                                 .font(.system(size: 16))
+                                 .fontWeight(.bold)
+                                 .foregroundColor(standingColor)
+                                
+                                
+                                Image(systemName: "rosette")
+                                    .foregroundColor(standingColor)
+                                    
+                            }
+                            .padding()
+                        })
+                        .background(RoundedRectangle(cornerRadius: 30).stroke(standingColor,lineWidth: 1))
+                       
+                    }.onAppear(perform: {
+                        self.loadData()
+                    })
+                    .onChange(of: settingGoal, perform: { value in
+                        loadData()
+                    })
 
-                  
-                    
-                    
-                 
-                    
                     NavigationLink(destination:
                                     BioDataListView(headline: "BREATHING", isActivity: false)
                                    , tag: 1, selection: $action){
@@ -106,26 +139,10 @@ public struct ActivityView: View {
                         EmptyView()
 
                     }
-                    
-
-                    
-                    
-                    
                     //START BTN
                     Button(action: {
                     
                         self.action = navigationTag
-                        
-                
-                        
-//                        self.action = navigationTag.rawValue
-//                        if action == NavigationTag.TO_BIODATA_VIEW.rawValue {
-//                            if activity.title == "Exercise" {
-//                                self.action = 2
-//                            }else{
-//                                // not do something
-//                            }
-//                        }
                         
                     }, label: {
                         HStack{
@@ -145,8 +162,72 @@ public struct ActivityView: View {
                 
             }//: ZSTACK
             .ignoresSafeArea(.all , edges: .top)
+            .sheet(isPresented: $settingGoal, content: {
+                goalSettingView(type: titie, show: $settingGoal)
+            })
         }
     }
+struct goalSettingView : View {
+    // MARK: - PROPERTIES
+    let type : String
+    @State var text = ""
+    @Binding var show : Bool
+    let standingColor : Color = Color(red: 253 / 255, green: 113 / 255, blue: 60 / 255)
+    // MARK: - BODY
+    var body: some View{
+        VStack{
+            Image(systemName: "rosette")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 150 , height: 150 , alignment: .center)
+                .foregroundColor(standingColor)
+                .padding()
+            Text("Setting Your Goal(Min/Day)")
+                .font(.title3)
+                .foregroundColor(standingColor)
+            
+            TextField("", text: self.$text)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .padding(.horizontal)
+                .textContentType(.oneTimeCode)
+                .keyboardType(.numberPad)
+                .onTapGesture {
+                    hideKeyboard()
+                }
+
+                
+            Button(action: {
+                let defaults = UserDefaults.standard
+                
+                if type == "Mindfulness"{
+                    defaults.setValue(Int(self.text), forKey: "MF")
+                }else{
+                    defaults.setValue(Int(self.text), forKey: "EX")
+                }
+                show = false
+            }, label: {
+                ZStack {
+                    Text("save".uppercased())
+                        .font(.headline)
+                        .padding()
+                        .foregroundColor(.white)
+                }
+                .background(standingColor)
+                .clipShape(Capsule())
+            })
+            Spacer()
+        }
+    }
+}
+
+#if canImport(UIKit)
+extension View {
+    func hideKeyboard() {
+        
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+    }
+}
+#endif
 
 struct BioDataListView: View {
     // MARK: - PROPERTIES
@@ -200,12 +281,6 @@ struct BioDataListView: View {
     var body: some View {
         ZStack {
             VStack {
-//                NavigationBarViewII(title: "watchmymind", imageIconRight: "plus")
-//
-//                    .padding(.horizontal , 15)
-//                    .padding(.bottom)
-//                    .padding(.top ,
-//                             UIApplication.shared.windows.first?.safeAreaInsets.top)
 
 
                 ScrollView(.vertical, showsIndicators: true){
@@ -222,6 +297,10 @@ struct BioDataListView: View {
                     .padding(.horizontal)
                     .padding(.top,45)
 
+                    
+                    Text("ddddd")
+                    
+                    
                     if !isActivity {
                         
                             
@@ -261,8 +340,16 @@ struct BioDataListView: View {
             .ignoresSafeArea(.all , edges: .bottom)
 
         }//: ZSTACK
+        .toolbar(content: {
+            ToolbarItemGroup(placement: .navigationBarTrailing) {
+                
+                Button(action: {print("ssds")}, label: {
+                    Image(systemName: "plus")
+                })
+                
+        }
+        })
         .ignoresSafeArea(.all , edges : .top)
-
         .fullScreenCover(isPresented: $isPresented, content: {
             LoadingView(showModal: self.$isPresented, decription: "Please use your Apple Watch to complete an activity ")
         })
@@ -276,12 +363,12 @@ struct BioDataListView: View {
            fetchData()
            self.autoActivityStore.loadData(startDate: Date(), numberOfObserved: -30)
         })
+       
 
 
 
     }
 }
-
 public class HealthStore2 {
     var healthStore : HKHealthStore?
     var query : HKStatisticsCollectionQuery?

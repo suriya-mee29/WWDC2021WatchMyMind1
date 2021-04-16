@@ -5,6 +5,7 @@ import HealthKit
 
 
 struct AppView : View {
+    
     // MARK: - PROPERTIES
     var healthStore : HealthStore? = HealthStore()
     @State private var isAnimated : Bool = false
@@ -15,6 +16,7 @@ struct AppView : View {
     @State private var steping : Int = 0
     @State private var name : String = ""
     
+
     //DATA
     let ac : [Activity] = Bundle.main.decode("Data/Activities.json")
 
@@ -48,7 +50,7 @@ struct AppView : View {
                             Image(systemName: "flame.fill")
                                 .font(.title3)
                                 .foregroundColor(burningColor)
-                           
+
                             
                             Text("BURNING \(moveing) KCAL".uppercased())
                                 .font(.title3)
@@ -61,7 +63,6 @@ struct AppView : View {
                         HStack{
                             Image(systemName: "bed.double.fill")
                                 .font(.title3)
-                                
                                 .foregroundColor(sleepingColor)
                              
                             Text("INBED \(inBad)  HR".uppercased())
@@ -244,5 +245,4 @@ struct AppView : View {
        
     }
 }
-
 PlaygroundPage.current.setLiveView(AppView())

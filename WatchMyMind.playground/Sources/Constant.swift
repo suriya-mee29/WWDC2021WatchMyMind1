@@ -9,6 +9,7 @@ public let sleepingColor : Color = Color(red: 60 / 255, green: 252 / 255, blue: 
 public let standingColor : Color = Color(red: 253 / 255, green: 113 / 255, blue: 60 / 255)
 public let steppingColor : Color = Color(red: 237 / 255, green: 17 / 255, blue: 123 / 255)
 
+
 // MARK: - DATA
 
 

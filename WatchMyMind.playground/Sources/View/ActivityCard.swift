@@ -37,7 +37,17 @@ public struct ActivityCard : View {
                 .foregroundColor(Color.black)
                 .padding(.bottom)
             
-            RingGraphView(value: CGFloat(Int(self.progrss) ?? 0 ) , color: self.progressColor)
+            if titie == "Mindfulness"{
+                Image(uiImage: UIImage(named: "mindfulness")!)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 80, height: 80)
+            }else{
+                Image(uiImage: UIImage(named: "other")!)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 80, height: 80)
+            }
         } // ef-VSTACK
         .frame(width: 155, height: 198, alignment: .center)
         .background(backgroundColor.cornerRadius(30).shadow(color: Color.gray.opacity(0.5), radius: 2, x: 0, y: 5))
