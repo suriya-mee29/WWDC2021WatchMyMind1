@@ -290,17 +290,13 @@ struct BioDataListView: View {
                             .font(.footnote)
                             .foregroundColor(.secondary)
                         Text("You might close this app to get a new snapshot data")
-
                             .font(.footnote)
                             .foregroundColor(.secondary)
                     }
                     .padding(.horizontal)
                     .padding(.top,45)
-
                     
-                    Text("ddddd")
-                    
-                    
+                
                     if !isActivity {
                         
                             
@@ -340,18 +336,9 @@ struct BioDataListView: View {
             .ignoresSafeArea(.all , edges: .bottom)
 
         }//: ZSTACK
-        .toolbar(content: {
-            ToolbarItemGroup(placement: .navigationBarTrailing) {
-                
-                Button(action: {print("ssds")}, label: {
-                    Image(systemName: "plus")
-                })
-                
-        }
-        })
         .ignoresSafeArea(.all , edges : .top)
         .fullScreenCover(isPresented: $isPresented, content: {
-            LoadingView(showModal: self.$isPresented, decription: "Please use your Apple Watch to complete an activity ")
+            LoadingView(showModal: self.$isPresented, decription: "Please use your Apple Watch to complete an activity ", isActivity: isActivity)
         })
         .onAppear(perform: {
             fetchData()
@@ -367,6 +354,198 @@ struct BioDataListView: View {
 
 
 
+    }
+}
+
+struct addAutoActivityView : View {
+    // MARK: - PROPERTIES
+    let wmm : Color = Color(red: 117 / 255, green: 31 / 255, blue: 252 / 255)
+    let title : String
+    
+    @State var textMFT : String = ""
+    @State var textBurned : String = ""
+    @State var textHRV : String = ""
+    @State var textDST : String = ""
+    
+    //CHECK BOXES
+    @State var burnChecked : Bool = false
+    @State var heartRateChecked : Bool = false
+    @State var distanceChecked : Bool = false
+    
+    @Binding var present : Bool
+    
+    // MARK: - function
+    func addData (){
+        present = false
+    }
+    
+    // MARK: - BODY
+    var body: some View{
+        VStack(alignment:.leading){
+            HStack{
+               Image(systemName: "plus.circle.fill")
+                .foregroundColor(wmm)
+               Text("Add \(title) data")
+            }
+            .padding(.vertical)
+            
+            if title == "Mindfulness"{
+                
+                //description
+                Text("add a mindful time that you have done.")
+                    .font(.callout)
+                // time
+                TextField("mindful time in minutes", text: self.$textMFT)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .padding(.horizontal)
+                    .textContentType(.oneTimeCode)
+                    .keyboardType(.numberPad)
+                    .padding(.vertical)
+                
+                //btn
+                if textMFT != "" {
+                HStack{
+                    Spacer()
+                    Button(action: {
+                        addData()
+                    }) {
+                            Text("add".uppercased())
+                                .font(.caption)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                                .padding()
+                    }
+                    .background(wmm)
+                    .clipShape(Capsule())
+                    Spacer()
+                }
+                }
+                
+                
+            }else{
+                //description
+                Text("add an exercise data that you have done.")
+                    .font(.callout)
+                // checkbox item
+                VStack (alignment:.leading) {
+                   
+                    //burned calories
+                    VStack (alignment : .leading){
+                    Button(action: {
+                        burnChecked.toggle()
+                    }) {
+                        HStack{
+                            Image(systemName:  burnChecked ? "checkmark.square.fill" : "checkmark.square")
+                                .font(.callout)
+                                .foregroundColor(
+                                    burnChecked ? wmm : Color.secondary)
+                            Text("burned calorie")
+                                .font(.callout)
+                                .fontWeight(.bold)
+                                .foregroundColor(
+                                    burnChecked ? wmm : Color.secondary)
+                            
+                        }
+                       
+                    }
+                        
+                        if burnChecked {
+                    TextField("kcal", text: self.$textBurned)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .padding(.horizontal)
+                            .textContentType(.oneTimeCode)
+                            .keyboardType(.numberPad)
+                        }
+                        
+                    }
+                    
+                    //heart rate
+                    VStack (alignment : .leading){
+                    Button(action: {
+                        heartRateChecked.toggle()
+                    }) {
+                        HStack{
+                            Image(systemName:  heartRateChecked ? "checkmark.square.fill" : "checkmark.square")
+                                .font(.callout)
+                                .foregroundColor(
+                                    heartRateChecked ? wmm : Color.secondary)
+                            Text("average hard rate")
+                                .font(.callout)
+                                .fontWeight(.bold)
+                                .foregroundColor(
+                                    heartRateChecked ? wmm : Color.secondary)
+                            
+                        }
+                       
+                    }
+                        
+                        if heartRateChecked {
+                    TextField("BMP", text: self.$textHRV)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .padding(.horizontal)
+                            .textContentType(.oneTimeCode)
+                            .keyboardType(.numberPad)
+                        }
+                        
+                    }
+                    
+                    //distance
+                    VStack (alignment : .leading){
+                    Button(action: {
+                        distanceChecked.toggle()
+                    }) {
+                        HStack{
+                            Image(systemName:  distanceChecked ? "checkmark.square.fill" : "checkmark.square")
+                                .font(.callout)
+                                .foregroundColor(
+                                    distanceChecked ? wmm : Color.secondary)
+                            Text("distance")
+                                .font(.callout)
+                                .fontWeight(.bold)
+                                .foregroundColor(
+                                    distanceChecked ? wmm : Color.secondary)
+                            
+                        }
+                       
+                    }
+                        if distanceChecked {
+                    TextField("km", text: self.$textDST)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .padding(.horizontal)
+                            .textContentType(.oneTimeCode)
+                            .keyboardType(.numberPad)
+                        }
+                        
+                    }
+                    
+                }
+                .padding(.vertical)
+                
+                //btn
+                if burnChecked || heartRateChecked || distanceChecked {
+                HStack{
+                    Spacer()
+                    Button(action: {
+                        addData()
+                    }) {
+                            Text("add".uppercased())
+                                .font(.caption)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                                .padding()
+                    }
+                    .background(wmm)
+                    .clipShape(Capsule())
+                    Spacer()
+                }
+                }
+               
+                
+                
+             
+            }
+           
+        }.frame( height: UIScreen.main.bounds.height)
     }
 }
 public class HealthStore2 {
@@ -1182,8 +1361,10 @@ struct LoadingView: View {
     @State var num : Int = 0
     let wmm : Color = Color(red: 117 / 255, green: 31 / 255, blue: 252 / 255)
     @Binding var showModal: Bool
-   
+    
+   @State var isAdd = false
     var decription : String
+    var isActivity : Bool
     
     // MARK: - FUNCTION
     private func updateUIFromStatistics(_ StatisticsCollection : HKStatisticsCollection){
@@ -1193,6 +1374,7 @@ struct LoadingView: View {
     // MARK: - BODY
     var body: some View {
         
+        if !isAdd{
         VStack (alignment: .center){
             Spacer()
            WatchView()
@@ -1217,13 +1399,38 @@ struct LoadingView: View {
             } //ZSTACK OF BTN
             .background(wmm)
             .clipShape(Capsule())
-            .padding()
+           
+            
+            ZStack {
+                Button(action: {
+                    isAdd = true
+                }, label: {
+                    Text("add new data")
+                        .font(.headline)
+                        .fontWeight(.black)
+                        .foregroundColor(.white)
+                        .padding(.horizontal)
+                })
+                .padding()
+            } //ZSTACK OF BTN
+            .background(wmm)
+            .clipShape(Capsule())
+           
+
            
             Spacer()
             
             
         }
         .navigationBarBackButtonHidden(true)
+        }else{
+            VStack (alignment: .center){
+                addAutoActivityView(title:  isActivity ? "Exercise" : "Mindfulness" , present: $showModal )
+                    .padding(.horizontal)
+            }
+            .navigationBarBackButtonHidden(true)
+            
+        }
        
         
     }
