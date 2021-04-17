@@ -7,7 +7,6 @@ import HealthKit
 struct AppView : View {
     
     // MARK: - PROPERTIES
-    var healthStore : HealthStore? = HealthStore()
     @State private var isAnimated : Bool = false
     @State private var moveing : Int = 0
     @State private var aSleep : String = "0"
@@ -121,83 +120,6 @@ struct AppView : View {
                 }
                 .background(wmm)
                 .clipShape(CustomShape())
-                .onAppear(perform: {
-                    
-                    if let healthStore = healthStore {
-                        healthStore.requestAuthorization { success in
-                            //Activity burned
-                            healthStore.getDailyMoving { summary in
-                                self.moveing = Int(summary?.activeEnergyBurned.doubleValue(for: HKUnit.kilocalorie()) ?? 0)
-                                
-                            }
-     
-                            //Sleeping
-                            healthStore.getDailySleeping { samples in
-                               // let startDate = Calendar.current.startOfDay(for: Date())
-                                var asleep_ :TimeInterval = 0
-                                var inbed_ :TimeInterval = 0
-                                
-                                if samples.count > 0{
-                                    for sample in samples {
-                                        if let categorySample = sample as? HKCategorySample{
-                                            if categorySample.value == HKCategoryValueSleepAnalysis.inBed.rawValue{
-                                                //inBed
-                                                inbed_ += categorySample.endDate.timeIntervalSince(categorySample.startDate)
-                                              
-                                            }else{
-                                                //asleep
-                                                asleep_ += categorySample.endDate.timeIntervalSince(categorySample.startDate)
-                                                
-                                            }
-                                        }else{
-                                            asleep_ = 0
-                                            inbed_ = 0
-                                        }
-                                        
-                                    }
-                                    
-                                    //finaly
-                                    if asleep_ != 0 {
-                                        self.aSleep = "\(asleep_.stringFromTimeInterval())"
-                                        
-                                        
-                                        
-                                    }else{
-                                        self.aSleep = "No data"
-                                    }
-                                    if inbed_ != 0 {
-                                        self.inBad = "\(inbed_.stringFromTimeInterval())"
-                                    }else{
-                                        self.inBad = "No data"
-                                    }
-                                    
-                                }else{
-                                    self.aSleep = "No data"
-                                    self.inBad = "No data"
-                                }
-                                
-                            }
-                            
-                            
-                            //Standing
-                            healthStore.getDailyStanding { standTime in
-                                self.standing = standTime.stringFromTimeInterval()
-                            }
-                            //Steping
-                            let startDate  = Calendar.current.date(byAdding: .day,value: -1, to: Date())!
-                            
-                            healthStore.calculateSteps{ statisticsCollection in
-                                
-                                statisticsCollection?.enumerateStatistics(from: startDate, to: Date(), with: { (statistic, stop) in
-                                    let count = statistic.sumQuantity()?.doubleValue(for: .count())
-                                    self.steping = Int(count ?? 0)
-                                })
-                                
-                                
-                            }
-                        }
-                    }
-                })
                 
                 ScrollView{
                 VStack(alignment: .leading ){

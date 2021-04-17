@@ -1,9 +1,5 @@
+
 import SwiftUI
-import PlaygroundSupport
-
-import Foundation
-
-//let backgroundColor : Color
 
 public struct FootageView: View {
         // MARK: - PROPERTIES
@@ -13,11 +9,7 @@ public struct FootageView: View {
     public var body: some View {
 
             VStack {
-//                Image(systemName: "display.2")
-//                .resizable()
-//                .scaledToFit()
-//                .frame(width: 128, height: 128)
-//                HStack{
+
                 Group {
                     Text(" Copyright © 2021 ")
 
@@ -55,4 +47,4 @@ public struct FootageView: View {
 
 
 
-//PlaygroundPage.current.setLiveView(FootageView())
+
