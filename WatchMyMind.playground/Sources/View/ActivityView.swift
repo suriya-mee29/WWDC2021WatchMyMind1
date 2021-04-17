@@ -59,7 +59,6 @@ public struct ActivityView: View {
             }
         } else {
             if defaults.integer(forKey: "EX")  != nil{
-                
                 value = defaults.integer(forKey: "EX")
             }
         }
@@ -99,15 +98,17 @@ public struct ActivityView: View {
                         
                         
                     })
+                    .padding(.horizontal,-8)
                     
                     
                     ZStack {
                         
                         Button(action: {
+                           
                             settingGoal.toggle()
                         }, label: {
                             HStack{
-                                Text("\(goal) Min/Day")
+                                Text("\(goal) Mins/Day")
                                  .font(.system(size: 16))
                                  .fontWeight(.bold)
                                  .foregroundColor(standingColor)
@@ -165,6 +166,7 @@ public struct ActivityView: View {
             .ignoresSafeArea(.all , edges: .top)
             .sheet(isPresented: $settingGoal, content: {
                 goalSettingView(type: titie, show: $settingGoal)
+                
             })
         }
     }
@@ -173,6 +175,8 @@ struct goalSettingView : View {
     let type : String
     @State var text = ""
     @Binding var show : Bool
+    let msg_EX : String = "Setting Your Burning Goal(kcal/Day)"
+    let msg_MF : String = "Setting Your Time Goal(Mins/Day)"
     let standingColor : Color = Color(red: 253 / 255, green: 113 / 255, blue: 60 / 255)
     // MARK: - BODY
     var body: some View{
@@ -183,7 +187,7 @@ struct goalSettingView : View {
                 .frame(width: 150 , height: 150 , alignment: .center)
                 .foregroundColor(standingColor)
                 .padding()
-            Text("Setting Your Goal(Min/Day)")
+            Text( type == "Mindfulness" ? msg_MF : msg_EX )
                 .font(.title3)
                 .foregroundColor(standingColor)
             
@@ -192,9 +196,7 @@ struct goalSettingView : View {
                 .padding(.horizontal)
                 .textContentType(.oneTimeCode)
                 .keyboardType(.numberPad)
-                .onTapGesture {
-                    hideKeyboard()
-                }
+
 
                 
             Button(action: {
@@ -221,14 +223,7 @@ struct goalSettingView : View {
     }
 }
 
-#if canImport(UIKit)
-extension View {
-    func hideKeyboard() {
-        
-        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-    }
-}
-#endif
+
 
 struct BioDataListView: View {
     // MARK: - PROPERTIES
@@ -236,6 +231,7 @@ struct BioDataListView: View {
     let isActivity : Bool
 
     @State var mindfulnessArr = [MindfulnessModel]()
+    @State var exerciseArr = [Exercise]()
     @ObservedObject var mindfulnessMV : MindfulnessStore
 
 
@@ -258,18 +254,38 @@ struct BioDataListView: View {
       
     }
     private func loadData(){
+        if !isActivity{
         let userDefults = UserDefaults.standard
         let mfKey = "MFCollection"
         
         do {
-            let storedObjItem = userDefults.object(forKey: mfKey )
+            let storedObjItem = userDefults.object(forKey: mfKey)
+            if storedObjItem != nil{
             let storedItems = try JSONDecoder().decode([MindfulnessModel].self, from: storedObjItem as! Data)
             print("Retrieved items: \(storedItems)")
             self.mindfulnessArr = storedItems
+            }
+            
         } catch let err {
             print(err)
         }
-
+        }else{
+            let userDefults = UserDefaults.standard
+            let exKey = "EXCollection"
+            
+            do {
+                let storedObjItem = userDefults.object(forKey: exKey)
+                if storedObjItem != nil{
+                let storedItems = try JSONDecoder().decode([Exercise].self, from: storedObjItem as! Data)
+                print("Retrieved items: \(storedItems)")
+                self.exerciseArr = storedItems
+                }
+                
+            } catch let err {
+                print(err)
+            }
+            
+        }
     }
     // MARK: - BODY
     var body: some View {
@@ -278,40 +294,41 @@ struct BioDataListView: View {
 
 
                 ScrollView(.vertical, showsIndicators: true){
-
-                    HStack {
-                        Image(systemName: "hourglass.bottomhalf.fill")
-                            .font(.footnote)
-                            .foregroundColor(.secondary)
-                        Text("You might close this app to get a new snapshot data,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,")
-                            .font(.footnote)
-                            .foregroundColor(.secondary)
-                    }
-                    .padding(.horizontal)
-                    .padding(.top,45)
-                    
                 
                     if !isActivity {
                         
                             ForEach(self.mindfulnessArr){ data in
-                                BioDataCardIView(title: "breathing", imageIcon:  UIImage(named: "lungs") ?? UIImage(named: "other")! , value: "\(data.time)", date: data.date)
+                                BioDataCardIView(title: "breathing", imageIcon:  UIImage(named: "lungs") ?? UIImage(named: "other")! , value: "\(data.time) mins", date: data.date)
                                     .padding(.horizontal)
                             }
                             
                             
                     
                     }else{
+                        
+                        ForEach(self.exerciseArr.reversed()){ data in
+                            
+                            
+                            NavigationLink(
+                                destination: MoreBioDataView(execriseInfo: data),
+                                label: {
+                                    BioDataCardIView(title: data.type , imageIcon:  UIImage(named:data.icon) ?? UIImage(named: "other")! , value: "\(data.burnded) kcal", date: data.date)
+                                        .padding(.horizontal)
+                                })
+                            
+                           
+                            
+                            
+                        }
 
                                
                     }
 
                 }//: SCROLL VIEW
-
-
-
-
-
-                .ignoresSafeArea(.all , edges: .bottom)
+                //.ignoresSafeArea(.all , edges: .bottom)
+                .padding(.top,50)
+                
+                
                 Spacer()
             }//: VSTACK
 
@@ -320,7 +337,7 @@ struct BioDataListView: View {
         }//: ZSTACK
         .ignoresSafeArea(.all , edges : .top)
         .fullScreenCover(isPresented: $isPresented, content: {
-            LoadingView(showModal: self.$isPresented, decription: "Please use your Apple Watch to complete an activity ", isActivity: isActivity)
+            LoadingView(showModal: self.$isPresented, decription: "Please insert an activity", isActivity: isActivity)
         })
         .onAppear(perform: {
            loadData()
@@ -348,6 +365,8 @@ struct addAutoActivityView : View {
     @State var textBurned : String = ""
     @State var textHRV : String = ""
     @State var textDST : String = ""
+    @State var selection: ExecriseType = .americanFootball
+    @State var selectionClick : Bool = false
     
     //CHECK BOXES
     @State var burnChecked : Bool = false
@@ -356,11 +375,40 @@ struct addAutoActivityView : View {
     
     @Binding var present : Bool
     
+    var animation: Animation {
+        Animation.easeOut
+    }
     // MARK: - function
     func addData (){
         present = false
     }
     
+    func addDataEx(ex: Exercise){
+        let userDefaults = UserDefaults.standard
+        let exKey = "EXCollection"
+        var exCollection = [Exercise]()
+        
+        do {
+            let storedExercise = userDefaults.object(forKey: exKey)
+            if storedExercise != nil {
+                let exerciseItems = try JSONDecoder().decode([Exercise].self, from: storedExercise as! Data)
+                print("Retrieved items: \(exerciseItems)")
+                exCollection = exerciseItems
+            }
+        } catch let err{
+            print(err)
+        }
+        
+        print("\(exCollection.count)")
+        exCollection.append(ex)
+        
+        if let exCollectionEncode = try? JSONEncoder().encode(exCollection){
+            userDefaults.set(exCollectionEncode, forKey: exKey)
+        }
+        
+        present = false
+        
+    }
     func addDataMF(mindfulTime : MindfulnessModel){
         let userDefaults = UserDefaults.standard
         let mfKey = "MFCollection"
@@ -368,10 +416,13 @@ struct addAutoActivityView : View {
         var mfCollection = [MindfulnessModel]()
         
         do {
-            let storedObjItem = userDefaults.object(forKey: mfKey )
+            let storedObjItem = userDefaults.object(forKey: mfKey)
+            if storedObjItem != nil{
             let storedItems = try JSONDecoder().decode([MindfulnessModel].self, from: storedObjItem as! Data)
             print("Retrieved items: \(storedItems)")
             mfCollection = storedItems
+            }
+            
         } catch let err {
             print(err)
         }
@@ -402,10 +453,10 @@ struct addAutoActivityView : View {
             if title == "Mindfulness"{
                 
                 //description
-                Text("add a mindful time that you have done.")
+                Text("add a mindfultimes that you have done")
                     .font(.callout)
                 // time
-                TextField("mindful time in minutes", text: self.$textMFT)
+                TextField("mindfultimes in minutes", text: self.$textMFT)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .padding(.horizontal)
                     .textContentType(.oneTimeCode)
@@ -435,22 +486,53 @@ struct addAutoActivityView : View {
                 
             }else{
                 //description
-                Text("add an exercise data that you have done.")
+                Text("add exercise's data that you have done")
                     .font(.callout)
                 // checkbox item
                 VStack (alignment:.leading) {
+                    
+                  
+                    Button(action: {
+                        
+                        selectionClick.toggle()
+                        
+                    }, label: {
+                        HStack {
+                            Text("Activity type : \(selection.rawValue)")
+                                .foregroundColor(wmm)
+                            Image(systemName: "greaterthan.square.fill")
+                                .foregroundColor(wmm)
+                                .rotationEffect(Angle.degrees( selectionClick ? 90 : 0))
+                                
+                        }
+                    })
+                    if selectionClick{
+                               Picker("This Title Is Localized", selection: $selection) {
+                                ForEach(ExecriseType.allCases, id: \.self) { value in
+                                       Text(value.localizedName)
+                                           .tag(value)
+                                   }
+                               }
+                    }
+                    
+                           
+                    
+                    
                    
+                    
                     //burned calories
                     VStack (alignment : .leading){
                     Button(action: {
                         burnChecked.toggle()
                     }) {
+                        
+                        
                         HStack{
                             Image(systemName:  burnChecked ? "checkmark.square.fill" : "checkmark.square")
                                 .font(.callout)
                                 .foregroundColor(
                                     burnChecked ? wmm : Color.secondary)
-                            Text("burned calorie")
+                            Text("Burned calories")
                                 .font(.callout)
                                 .fontWeight(.bold)
                                 .foregroundColor(
@@ -480,7 +562,7 @@ struct addAutoActivityView : View {
                                 .font(.callout)
                                 .foregroundColor(
                                     heartRateChecked ? wmm : Color.secondary)
-                            Text("average hard rate")
+                            Text("Average Heart Rate")
                                 .font(.callout)
                                 .fontWeight(.bold)
                                 .foregroundColor(
@@ -510,7 +592,7 @@ struct addAutoActivityView : View {
                                 .font(.callout)
                                 .foregroundColor(
                                     distanceChecked ? wmm : Color.secondary)
-                            Text("distance")
+                            Text("Distance")
                                 .font(.callout)
                                 .fontWeight(.bold)
                                 .foregroundColor(
@@ -537,6 +619,11 @@ struct addAutoActivityView : View {
                 HStack{
                     Spacer()
                     Button(action: {
+                       let newEx = Exercise(id: UUID(), date: Date(),
+                                            type: selection.rawValue , burnded: Double(textBurned) ?? 0 ,
+                                            hr: Int(textHRV) ?? 0, distance: Double(textDST) ?? 0, icon: selection.rawValue )
+                        
+                        self.addDataEx(ex: newEx)
                         addData()
                     }) {
                             Text("add".uppercased())
@@ -566,6 +653,15 @@ public struct MindfulnessModel : Identifiable , Codable{
    public var time : Int
 }
 
+public struct Exercise : Identifiable , Codable {
+    public let id : UUID
+    public let date : Date
+    public let type : String
+    public let burnded : Double
+    public let hr : Int
+    public let distance : Double
+    public let icon : String
+}
 class MindfulnessStore : ObservableObject {
     
     @Published var mindfulnessArr :[MindfulnessModel] = [MindfulnessModel]()
@@ -654,7 +750,7 @@ struct BioDataCardIView: View {
             
             }// EO - VSTACK
             .padding()
-            .frame(width: UIScreen.main.bounds.width * 0.9)
+           // .frame(width: UIScreen.main.bounds.width * 0.8 )
         
             
          
@@ -667,32 +763,18 @@ struct HeaderDetailIView: View {
     // MARK: - PROPERTIES
     let date : Date
     let startTime : Date
-    let endTime : Date
     // MARK: - BODY
     var body: some View {
         VStack {
             Text(date , formatter: taskDateFormat)
                 .font(.title)
-            HStack {
-                HStack{
-               
+          
                     HStack {
                         Image(systemName: "stopwatch.fill")
                             .font(.caption)
                         Text(startTime,formatter: dateFormatter)
                             .font(.caption)
-                        Text("-")
-                            .font(.caption)
-                        Image(systemName: "stopwatch.fill")
-                            .font(.caption)
-                        Text(endTime,formatter: dateFormatter)
-                            .font(.caption)
                     }
-                }
-                
-            }
-            
-            
         }
     }
 }
@@ -713,17 +795,17 @@ struct BioDataCardTitleView: View {
                 
                     Text(title.uppercased())
                         .foregroundColor(color)
-                        .font(.title2)
+                        .font(.title3)
                         .fontWeight(.medium)
                 
                 Text(value)
-                    .font(.largeTitle)
+                    .font(.title2)
                     .fontWeight(.bold)
             }//: VTACK
             Image(systemName: imageIcon)
                 .resizable()
                 .scaledToFit()
-                .frame(width: 150, height: 60)
+                .frame(width: 40, height: 40)
                 .padding()
                 .foregroundColor(color)
                 .scaleEffect(isAnimated ? 1.0 : 0.95 )
@@ -742,46 +824,36 @@ struct MoreBioDataView: View {
    
     // MARK: - PROPERTIES
     let wmm : Color = Color(red: 117 / 255, green: 31 / 255, blue: 252 / 255)
-//    let sample : HKWorkout?
-    let hrv : Double
-    var value : [Double] = [122.0,122.0,119,119,118,121,124,123,116,115,124,124,126,125,120,121,120,122,120,120,122,122,117,120,120,119,118,120,120,121]
-    
+
+    let execriseInfo : Exercise
     // MARK: - BODY
     var body: some View {
         ZStack {
             VStack {
                 
-                
-                HeaderDetailIView(date: Date(), startTime: Date(), endTime: Date())
+                HeaderDetailIView(date: execriseInfo.date, startTime: execriseInfo.date)
+                    .padding(.top,50)
                 
                 ScrollView(.vertical, showsIndicators: false, content: {
                     VStack(alignment: .trailing){
                         
+                       let bruned = execriseInfo.burnded
+                        if bruned != 0 {
+                         
+                            BioDataCardTitleView(title: "ACTIVE KILOCALORIES", imageIcon: "flame", color: wmm, value: "\(bruned) kcal")
+                                .padding(.top)
+                        }
+                        let hrv = execriseInfo.hr
+                        if hrv != 0 {
+                            BioDataCardTitleView(title: "Avg. Hart Rate", imageIcon: "heart", color: wmm , value: "\(hrv) BPM")
+                                .padding(.top)
+                        }
+                        let distance =  execriseInfo.distance
+                        if distance != 0 {
+                            BioDataCardTitleView(title: "Total distance", imageIcon: "location.north.line", color: wmm, value:                              "\(distance) km")
+                        }
                         
-//                        if let bruned = sample?.totalEnergyBurned?.doubleValue(for: .kilocalorie()){
-//                        let formattedCalories = String(format: "%.2f kcal",bruned)
-//                            BioDataCardTitleView(title: "ACTIVE KILOCALORIES", imageIcon: "flame", color: wmm, value: "\(formattedCalories)")
-//                                .padding(.top)
-//                        }
-//
-//                        if let distance = sample?.totalDistance?.doubleValue(for: .meter()){
-//                            let distanceKm = distance / 1000
-//                            let formattedMater = String(format: "%.2f km ",distanceKm)
-//                            BioDataCardTitleView(title: "Total distance", imageIcon: "location.north.line", color: wmm, value: "\(formattedMater) ")
-//                        }
-//
-//                        if let floors = sample?.totalFlightsClimbed{
-//                            BioDataCardTitleView(title: "Flight Climbed", imageIcon: "arrow.up.right.circle", color: wmm, value: "\(floors) floors")
-//                        }
-//
-//                        if let strokeCount = sample?.totalSwimmingStrokeCount{
-//                            BioDataCardTitleView(title: "Stroke Count", imageIcon: "arrow.uturn.left.circle", color: wmm, value: "\(strokeCount)")
-//
-//                        }
-        
-                        BioDataCardTitleView(title: "Avg Hart Rate", imageIcon: "heart", color: Color("wmm"), value: "\(Int(hrv)) BPM")
-                            .padding(.top)
-                       
+                                
                        
                     }
                     .padding(.top)
@@ -792,8 +864,9 @@ struct MoreBioDataView: View {
                 Spacer()
                 
             }
+            .ignoresSafeArea(.all,edges: .top)
         }
-        .ignoresSafeArea(.all,edges: .all)
+       
     }
 }
 
@@ -823,28 +896,13 @@ struct LoadingView: View {
                     .font(.callout)
                     .fontWeight(.semibold)
                     .padding(.horizontal,30)
-                   
-            ZStack {
-                Button(action: {
-                    showModal = false
-                }, label: {
-                    Text("OK")
-                        .font(.headline)
-                        .fontWeight(.black)
-                        .foregroundColor(.white)
-                        .padding(.horizontal)
-                })
-                .padding()
-            } //ZSTACK OF BTN
-            .background(wmm)
-            .clipShape(Capsule())
            
-            
+
             ZStack {
                 Button(action: {
                     isAdd = true
                 }, label: {
-                    Text("add new data")
+                    Text("Add New Activity")
                         .font(.headline)
                         .fontWeight(.black)
                         .foregroundColor(.white)
@@ -854,6 +912,22 @@ struct LoadingView: View {
             } //ZSTACK OF BTN
             .background(wmm)
             .clipShape(Capsule())
+            
+            
+     ZStack {
+         Button(action: {
+             showModal = false
+         }, label: {
+             Text("Cancle")
+                 .font(.headline)
+                 .fontWeight(.black)
+                 .foregroundColor(.white)
+                 .padding(.horizontal)
+         })
+         .padding()
+     } //ZSTACK OF BTN
+     .background(wmm)
+     .clipShape(Capsule())
            
 
            
@@ -891,7 +965,7 @@ struct WatchView: View {
                 .scaleEffect(1 + CGFloat(annimation))
                 .opacity(1 - annimation)
             
-            Image(systemName: "applewatch.watchface")
+            Image(systemName: "plus")
                 .resizable()
                 .scaledToFit()
                 .foregroundColor(.white)
@@ -904,6 +978,112 @@ struct WatchView: View {
             }
     }
 }
+}
+
+enum ExecriseType : String , Equatable, CaseIterable{
+     
+        var id : String { UUID().uuidString }
+        var localizedName: LocalizedStringKey { LocalizedStringKey(rawValue) }
+    
+        case americanFootball = "americanFootball"
+        case archery = "archery"
+        case australianFootball = "australianFootball"
+            
+        case badminton = "badminton"
+        case barre = "barre"
+        case baseball = "baseball"
+        case basketball = "basketball"
+        case bowling = "bowling"
+        case boxing = "boxing"
+            
+        case climbing = "climbing"
+        case cooldown = "cooldown"
+        case coreTraining  = "coreTraining"
+        case cricket = "cricket"
+        case crossCountrySkiing = "crossCountrySkiing"
+        case crossTraining = "crossTraining"
+        case curling = "curling"
+        case cycling = "cycling"
+        case cardioDance = "cardio Dance"
+            
+     
+        case discSports = "discSports"
+        case downhillSkiing = "downhillSkiing"
+            
+        case elliptical = "elliptical"
+        case equestrianSports = "equestrianSports"
+            
+        case fencing = "fencing"
+        case fishing = "fishing"
+        case functionalStrengthTraining = "functionalStrengthTraining"
+            
+
+        case golf = "golf"
+        case gymnastics                    = "gymnastics"
+        
+        case handball                      = "handball"
+        case hiking                        = "hiking"
+        case hockey                        = "hockey"
+        case hunting                       = "hunting"
+        case handCycling                   = "handCycling"
+        case highIntensityIntervalTraining = "hightIntensityIntervalTraining"
+            
+        case jumpRope                     = "jumpRope"
+            
+        case kickboxing                   = "kickboxing"
+        
+        case lacrosse                     = "lacrosse"
+        
+        case martialArts                  = "martialArts"
+        case mindAndBody                  = "mindandBody"
+        case mixedCardio                  = "mixedCardio"
+        
+            
+        case other                        = "other"
+        
+        case paddleSports                 = "paddleSports"
+        case play                         = "play"
+        case preparationAndRecovery       = "preparationAndRecovery"
+        case pilates                      = "pilates"
+        case pickleball                   = "pickleball"
+    
+        case racquetball                  = "racquetball"
+        case rowing                       = "rowing"
+        case rugby                        = "rugby"
+        case running                      = "running"
+        
+        case sailing                      = "sailing"
+        case skatingSports                = "skatingSports"
+        case snowSports                   = "snowSports"
+        case soccer                       = "soccer"
+        case softball                     = "softball"
+        case squash                       = "squash"
+        case stairClimbing                = "stairClimbing"
+        case surfingSports                = "surfingSports"
+        case swimming                     = "swimming"
+        case stairs                       = "stairs"
+        case snowboarding  = "snowBoarding"
+        case stepTraining      = "stepTraining"
+        case socialDance      = "socialDance"
+        
+        case tableTennis = "tableTennis"
+        case tennis                    = "tennis"
+        case trackAndField               = "trackAndField"
+        case traditionalStrengthTraining  = "traditionalStrengthTraining"
+        case taiChi                       = "taiChi"
+        
+        case volleyball                   = "volleyball"
+
+        case walking                    = "walking"
+        case waterFitness               = "waterFitness"
+        case waterPolo                    = "waterPolo"
+        case waterSports                 =  "waterSports"
+        case wrestling                    = "wrestling"
+        case wheelchairRunPace          = "wheelchairRunPace"
+        case wheelchairWalkPace  = "wheelchairWalkPace"
+        case yoga  = "yoga"
+    
+    
 }
 
 

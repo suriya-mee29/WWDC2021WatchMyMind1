@@ -1,6 +1,6 @@
 import SwiftUI
 import PlaygroundSupport
-import HealthKit
+
 
 
 
@@ -119,11 +119,11 @@ struct AppView : View {
                         
                 }
                 .background(wmm)
-                .clipShape(CustomShape())
+                //.clipShape(CustomShape())
                 
                 ScrollView{
                 VStack(alignment: .leading ){
-                    Text("auto activity (\(ac.count))".uppercased())
+                    Text("auto-activity (\(ac.count))".uppercased())
                         .font(.title3)
                         .fontWeight(.bold)
                         .padding(.horizontal)
@@ -164,7 +164,9 @@ struct AppView : View {
                     FootageView()
             }//ScrollView
         }//VStack
+           
         }//Navigatio
+       
        
     }
 }
