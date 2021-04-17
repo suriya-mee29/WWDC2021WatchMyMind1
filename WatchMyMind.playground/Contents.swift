@@ -27,6 +27,7 @@ struct AppView : View {
     
     var body : some View {
         NavigationView{
+        
             VStack{
                 //Header
                 ZStack{
@@ -198,7 +199,7 @@ struct AppView : View {
                     }
                 })
                 
-                
+                ScrollView{
                 VStack(alignment: .leading ){
                     Text("auto activity (\(ac.count))".uppercased())
                         .font(.title3)
@@ -234,14 +235,14 @@ struct AppView : View {
                                         
                                     })//LAZY H GRID
                                 
-                                
-                            })// scrol
                     
-                }
+                            })// scrol
+                }//VStack
               
-               
-        }
-        }
+                    FootageView()
+            }//ScrollView
+        }//VStack
+        }//Navigatio
        
     }
 }
